@@ -9,22 +9,51 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import os
+import environ
 from pathlib import Path
+
+# Environ
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, ),
+    SECRET_KEY=(str, ),
+    DOMAIN_NAME=(str,),
+
+    REDIS_HOST=(str, ),
+    REDIS_PORT=(str, ),
+
+    DATABASE_NAME=(str, ),
+    DATABASE_USER=(str, ),
+    DATABASE_PASSWORD=(str, ),
+    DATABASE_HOST=(str, ),
+    DATABASE_PORT=(str, ),
+
+    EMAIL_BACKEND=(str, ),
+    EMAIL_HOST=(str, ),
+    EMAIL_PORT=(int, ),
+    EMAIL_HOST_USER=(str, ),
+    EMAIL_HOST_PASSWORD=(str, ),
+    EMAIL_USE_SSL=(bool, ),
+
+    UKASSA_ID=(str, ),
+    UKASSA_SECRET_KEY=(str, ),
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+# Take environment variables from .env file
+environ.Env.read_env(BASE_DIR / '.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(vvw^gjj-k57a7b(domqha(+(i=w2kura5^-z*$!_xbd-ori(('
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = ['*']
-DOMAIN_NAME = 'http://127.0.0.1:8000'
+DOMAIN_NAME = env('DOMAIN_NAME')
 
 # Application definition
 
@@ -35,8 +64,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.humanize',
+
+    'debug_toolbar',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.github',
+
+    'django_extensions',
+
     'products',
     'users',
+    'orders',
 ]
 
 MIDDLEWARE = [
@@ -47,6 +89,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'mystore.urls'
@@ -75,8 +119,12 @@ WSGI_APPLICATION = 'mystore.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mystore',
+        'USER': 'store_username',
+        'PASSWORD': 'store_password',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 
@@ -129,16 +177,69 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Users
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = 'users.User'
 
 LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Sending email
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = env('EMAIL_HOST')
+    EMAIL_PORT = env('EMAIL_PORT')
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+    EMAIL_USE_SSL = env('EMAIL_USE_SSL')
 
-EMAIL_HOST = 'smtp.yandex.ru'
-EMAIL_PORT = 465
-EMAIL_HOST_USER = 'Vladimir.Karpenko.Work@yandex.ru'
-EMAIL_HOST_PASSWORD = 'sUNUj4BjtPEo9CnJzyGa'
-EMAIL_USE_SSL = True
+# AUTHENTICATION WITH SOCIAL ACCOUNTS
+SITE_ID = 2
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend',
+                           'allauth.account.auth_backends.AuthenticationBackend',
+                           ]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'github': {
+        # "APP": {
+        #     "client_id": os.getenv('GITHUB_CLIENT_ID'),
+        #     "secret": os.getenv("GITHUB_SECRET_KEY"),
+        #     "key": ""
+        # },
+        'SCOPE': [
+            'user',
+        ],
+        'AUTH_PARAMS': {
+            "access_type": "online",
+        }
+    }
+}
+
+# CACHE
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
+
+# Redis
+REDIS_HOST = env('REDIS_HOST')
+REDIS_PORT = env('REDIS_PORT')
+
+# CACHE
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# Celery
+CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}'
+CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}'
+
+# Payments
+UKASSA_ID = env('UKASSA_ID')
+UKASSA_SECRET_KEY = env('UKASSA_SECRET_KEY')
