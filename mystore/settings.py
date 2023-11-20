@@ -16,28 +16,28 @@ from pathlib import Path
 # Environ
 env = environ.Env(
     # set casting, default value
-    DEBUG=(bool, ),
-    SECRET_KEY=(str, ),
-    DOMAIN_NAME=(str,),
+    DEBUG=(bool),
+    SECRET_KEY=(str),
+    DOMAIN_NAME=(str),
 
-    REDIS_HOST=(str, ),
-    REDIS_PORT=(str, ),
+    REDIS_HOST=(str),
+    REDIS_PORT=(str),
 
-    DATABASE_NAME=(str, ),
-    DATABASE_USER=(str, ),
-    DATABASE_PASSWORD=(str, ),
-    DATABASE_HOST=(str, ),
-    DATABASE_PORT=(str, ),
+    DATABASE_NAME=(str),
+    DATABASE_USER=(str),
+    DATABASE_PASSWORD=(str),
+    DATABASE_HOST=(str),
+    DATABASE_PORT=(str),
 
-    EMAIL_BACKEND=(str, ),
-    EMAIL_HOST=(str, ),
-    EMAIL_PORT=(int, ),
-    EMAIL_HOST_USER=(str, ),
-    EMAIL_HOST_PASSWORD=(str, ),
-    EMAIL_USE_SSL=(bool, ),
+    EMAIL_BACKEND=(str),
+    EMAIL_HOST=(str),
+    EMAIL_PORT=(int),
+    EMAIL_HOST_USER=(str),
+    EMAIL_HOST_PASSWORD=(str),
+    EMAIL_USE_SSL=(bool),
 
-    UKASSA_ID=(str, ),
-    UKASSA_SECRET_KEY=(str, ),
+    UKASSA_ID=(str),
+    UKASSA_SECRET_KEY=(str),
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -120,11 +120,11 @@ WSGI_APPLICATION = 'mystore.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'mystore',
-        'USER': 'store_username',
-        'PASSWORD': 'store_password',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'NAME': env('DATABASE_NAME'),
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASSWORD'),
+        'HOST': env('DATABASE_HOST'),
+        'PORT': env('DATABASE_PORT'),
     }
 }
 
@@ -145,7 +145,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
+ADMINS = [('Vladimir', 'vov4ic-123@mail.ru')]
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -163,9 +163,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+
+if DEBUG:
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static',
+    ]
+else:
+    STATICFILES_FINDERS = (
+        'django.contrib.staticfiles.finders.FileSystemFinder',
+        'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    )
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 # Media files
 MEDIA_URL = '/media/'
@@ -195,18 +204,13 @@ else:
     EMAIL_USE_SSL = env('EMAIL_USE_SSL')
 
 # AUTHENTICATION WITH SOCIAL ACCOUNTS
-SITE_ID = 2
+SITE_ID = 3
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend',
                            'allauth.account.auth_backends.AuthenticationBackend',
                            ]
 
 SOCIALACCOUNT_PROVIDERS = {
     'github': {
-        # "APP": {
-        #     "client_id": os.getenv('GITHUB_CLIENT_ID'),
-        #     "secret": os.getenv("GITHUB_SECRET_KEY"),
-        #     "key": ""
-        # },
         'SCOPE': [
             'user',
         ],
@@ -243,3 +247,34 @@ CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}'
 # Payments
 UKASSA_ID = env('UKASSA_ID')
 UKASSA_SECRET_KEY = env('UKASSA_SECRET_KEY')
+
+# Logging
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "root": {"level": "INFO", "handlers": ["file"]},
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": f"{BASE_DIR}/django.log",
+            "formatter": "app",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": True
+        },
+    },
+    "formatters": {
+        "app": {
+            "format": (
+                u"%(asctime)s [%(levelname)-8s] "
+                "(%(module)s.%(funcName)s) %(message)s"
+            ),
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+}
