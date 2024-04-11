@@ -37,7 +37,24 @@ python3 -m pip install --upgrade pip
 ```
 pip install -r requirements.txt
 ```
+Добавить свои значения в .env
 
+```
+DATABASE_NAME=
+DATABASE_USER=
+DATABASE_PASSWORD=
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+
+UKASSA_ID=
+UKASSA_SECRET_KEY=
+
+GITHUB_CLIENT_ID=
+GITHUB_SECRET_KEY=
+```
 Выполнить миграции:
 
 ```
@@ -49,3 +66,4 @@ python3 manage.py migrate
 ```
 python3 manage.py runserver
 ```
+
