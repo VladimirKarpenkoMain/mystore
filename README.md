@@ -1,69 +1,93 @@
-# Mystore
-## Описание
-Создан Карпенко Владимиром в процессе изучения фреймфорка Django. Моделирует поведение полноценного интернет магазина-одежды.
-## Технологии, используемые в проекте
-* Python 3.11
-* Django 
-* PostgreSQL
-* SQLite
+# MyStore
+
+**MyStore** — это полнофункциональный интернет-магазин одежды, разработанный с использованием Django и PostgreSQL. Проект включает базовую функциональность интернет-магазина, такую как каталог товаров, корзина покупок, система оплаты (поддержка ЮKassa) и панель администрирования.
+
+## Функциональные особенности
+
+- **Каталог товаров:** Включает в себя категории, фильтрацию и подробные страницы товаров.
+- **Корзина покупок:** Добавление, удаление и изменение количества товаров.
+- **Система оформления заказа:** Поддержка многошагового процесса оформления заказа.
+- **Поддержка онлайн-оплаты:** Интеграция с ЮKassa для приема платежей.
+- **Панель администрирования:** Удобное управление товарами, заказами и пользователями через стандартную админку Django.
+- **Авторизация через GitHub**
+
+## Технологии
+
+- **Backend:** Django (Python), PostgreSQL
+- **Frontend:** HTML, CSS
+- **Платежная система:** ЮKassa
+- **Авторизация через соцсети:** GitHub (с использованием `django-allauth`)
+  
 ## Как запустить проект
 
-Клонировать репозиторий и перейти в него в командной строке:
+### Установка
 
-```
-git clone https://github.com/VladimirKarpenkoMain/mystore
-```
+1. Клонируйте репозиторий:
 
-```
-cd mystore
-```
+    ```bash
+    git clone https://github.com/VladimirKarpenkoMain/mystore.git
+    cd mystore
+    ```
 
-Cоздать и активировать виртуальное окружение:
+2. Создайте виртуальное окружение и активируйте его:
 
-```
-python3 -m venv env
-```
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # Для Windows: venv\Scripts\activate
+    ```
 
-```
-source env/bin/activate
-```
+3. Установите зависимости:
 
-```
-python3 -m pip install --upgrade pip
-```
+    ```bash
+    pip install -r requirements.txt
+    ```
+4. Настройте базу данных, почту в `.env`:
 
-Установить зависимости из файла requirements.txt:
+    ```
+    DATABASE_NAME=
+    DATABASE_USER=
+    DATABASE_PASSWORD=
+    DATABASE_HOST=localhost
+    DATABASE_PORT=5432
+    
+    EMAIL_HOST_USER=
+    EMAIL_HOST_PASSWORD=
+    ```
 
-```
-pip install -r requirements.txt
-```
-Добавить свои значения в .env
+5. Примените миграции:
 
-```
-DATABASE_NAME=
-DATABASE_USER=
-DATABASE_PASSWORD=
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
+    ```bash
+    python manage.py migrate
+    ```
 
-EMAIL_HOST_USER=
-EMAIL_HOST_PASSWORD=
+6. Создайте суперпользователя для доступа к админке:
 
-UKASSA_ID=
-UKASSA_SECRET_KEY=
+    ```bash
+    python manage.py createsuperuser
+    ```
 
-GITHUB_CLIENT_ID=
-GITHUB_SECRET_KEY=
-```
-Выполнить миграции:
+7. Запустите сервер разработки:
 
-```
-python3 manage.py migrate
-```
+    ```bash
+    python manage.py runserver
+    ```
+### Настройка ЮKassa
 
-Запустить проект:
+1. Зарегистрируйтесь в [ЮKassa](https://yookassa.ru) и получите необходимые параметры (ukassa_id, ukassa_secret_key).
 
-```
-python3 manage.py runserver
-```
+2. Добавьте параметры в файл `.env`:
 
+    ```
+    UKASSA_ID=
+    UKASSA_SECRET_KEY=
+    ```
+### Настройка авторизации через GitHub
+
+1. Создайте OAuth-приложение на [GitHub](https://github.com/settings/applications/new) и получите Client ID и Client Secret.
+
+2. Добавьте параметры в файл `.env`:
+
+    ```
+    GITHUB_CLIENT_ID=
+    GITHUB_SECRET_KEY=
+    ```
